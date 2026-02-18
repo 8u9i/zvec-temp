@@ -276,10 +276,10 @@ async def delete_document(doc_id: str):
 @app.delete("/collection", tags=["Collection"])
 async def clear_collection():
     """Clear all documents from the collection"""
+    global collection
+    
     if not collection:
         raise HTTPException(status_code=503, detail="Collection not initialized")
-    
-    global collection
     
     try:
         collection.close()
