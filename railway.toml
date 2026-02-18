@@ -1,0 +1,38 @@
+# Railway Configuration as Code
+# This file defines your Railway deployment configuration
+# Reference: https://docs.railway.com/reference/config-as-code
+
+# ============================================
+# API Service Configuration
+# ============================================
+[services.zvec-api]
+build.builder = "DOCKERFILE"
+build.dockerfilePath = "api/Dockerfile"
+
+[services.zvec-api.deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[services.zvec-api.env]
+ZVEC_DATA_PATH = "/app/zvec_data"
+ZVEC_DIMENSION = "128"
+PORT = "8000"
+
+# ============================================
+# UI Service Configuration
+# ============================================
+[services.zvec-ui]
+build.builder = "DOCKERFILE"
+build.dockerfilePath = "ui/Dockerfile"
+
+[services.zvec-ui.deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[services.zvec-ui.env]
+NEXT_PUBLIC_API_URL = "http://zvec-api:8000"
+PORT = "3000"

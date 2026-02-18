@@ -1,0 +1,97 @@
+# Zvec Vector Database - Docker Compose for Railway
+# Drag and drop this file into Railway canvas for instant deployment
+# 
+# 🚀 Railway Deployment Instructions:
+# 1. Go to https://railway.app
+# 2. Create a new project
+# 3. Drag this docker-compose.yml file into the canvas
+# 4. Railway will automatically deploy your Zvec API + UI
+
+version: "3.8"
+
+services:
+  # ============================================
+  # Zvec API Backend Service
+  # ============================================
+  zvec-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: zvec-api
+    restart: unless-stopped
+    
+    # Environment configuration
+    environment:
+      - ZVEC_DATA_PATH=/app/zvec_data
+      - ZVEC_DIMENSION=128
+      - PORT=8000
+    
+    # Port exposure (Railway auto-detects)
+    ports:
+      - "8000:8000"
+    
+    # Volume for data persistence
+    volumes:
+      - zvec_data:/app/zvec_data
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Resource limits (adjust as needed)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================
+  # Zvec UI Frontend Service
+  # ============================================
+  zvec-ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: zvec-ui
+    restart: unless-stopped
+    
+    # Environment configuration
+    environment:
+      - NEXT_PUBLIC_API_URL=http://zvec-api:8000
+      - PORT=3000
+    
+    # Port exposure
+    ports:
+      - "3000:3000"
+    
+    # Dependencies
+    depends_on:
+      zvec-api:
+        condition: service_healthy
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+# Named volume for persistent storage
+volumes:
+  zvec_data:
+    driver: local
+
+# Network configuration for private communication
+networks:
+  default:
+    name: zvec-network
